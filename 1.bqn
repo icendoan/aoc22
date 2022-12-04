@@ -1,3 +1,4 @@
+⟨Int⟩ ← •Import "util.bqn"
 # Take the file as a list of lines, and compute each line's *group* by
 # counting the number of separators (lines of length 0) before it.
 # It first computes a separator mask 0⊸=≠¨, and takes a partial sum 1+`
@@ -6,7 +7,7 @@
 # This produces our inputs as a list of lists of lines. Drop the empty lines, and then
 # read each as a BQN program, which yields its integer value
 # Finally, sum up the calorie count of each elf
-elves ← +´¨ •BQN⚇¯2 1↓ (¬×1+`⊢)∘(0⊸=≠¨)⊸⊔ •file.Lines "1.input"
+elves ← +´¨ Int⚇¯2 1↓ (¬×1+`⊢)∘(0⊸=≠¨)⊸⊔ •file.Lines "1.input"
 # the most calorie-rich elf
 p1 ← ⌈´ elves
 # the sum of the 3 most calorie rich elves
