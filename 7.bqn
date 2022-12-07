@@ -4,23 +4,18 @@ push  ← "$ cd"⊸≡¨ 4↑¨ lines
 pop   ← "$ cd .."⊸≡¨ lines
 depth ← +` push - 2 × pop
 files ← (('$' ≠ ⊑)¨ ∧ ("dir" ≢ 3 ↑ ⊢)¨) lines
-sizes ← files × (Int ⊒⟜' ' ↑ ⊢)¨ lines
-dirs  ← ¯1 ⊑¨ {𝕨𝕊1‿x:1‿x;𝕨}` <˘ (push≠pop) ⍉∘≍ 5↓¨lines
+start ← sizes ← files × (Int ⊒⟜' ' ↑ ⊢)¨ lines
 subs  ← {("dir"≡3↑⊢) 𝕩 ? 4 ↓ 𝕩 ; ""}¨ lines
-t ← ⍉[lines, dirs, depth, files, sizes, subs]
+paths ← (<⟨⟩) { s 𝕊 "$ cd ..": ¯1 ↓ s ; s 𝕊 cmd: "$ cd" ≡ 4↑cmd? s∾⋈5↓cmd;𝕨}` lines
 
-resolved ← { 𝕊 d:
- mask ← depth = d 
- leaves ← ⍷ mask / dirs 
- pruned ← +´¨ dirs ⊐⊸⊔○(mask⊸/) sizes 
- sizes ↩ sizes + (leaves ⊐ subs) ⊏ pruned ∾ 0 
-}¨ ∨⍷depth
+{ 𝕊 d:
+ mask ← depth = d
+ leaves ← ⍷ mask / paths
+ pruned ← +´¨ paths ⊐⊸⊔○(mask⊸/) sizes
+ sizes ↩ sizes + (⟨⟩⊸≢¨ subs) × (leaves ⊐ paths ∾⟜⋈¨ subs) ⊏ pruned ∾ 0
+} ¨ ∨⍷depth
 
-total ← +´¨ dirs ⊐⊸⊔ sizes
-
-•Show ⍉ (⍷dirs) ≍ total
-
-p1 ← +´ (100000≥⊢)⊸/ total
-p2 ← 0
-
+total ← +´¨ paths ⊐⊸⊔ sizes
+p1 ← +´ (100000 ≥ ⊢)⊸/ total
+p2 ← ⌊´ (3e7 ≤ total + 7e7 - +´ start) / total
 p1‿p2
