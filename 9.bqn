@@ -1,4 +1,5 @@
-moves ← (1⊸↑ ⋈ '0' -˜ ¯1 ⊑ ⊢)¨ •file.Lines "9.test"
+⟨Int⟩ ← •Import "util.bqn"
+moves ← (1⊸↑ ⋈ 2 Int∘↓ ⊢)¨ •file.Lines "9.input"
 exp ← ∾ { 𝕊d‿n: n / ("UDLR" ⊐ d) ⊏ ⟨1‿0, ¯1‿0, 0‿¯1, 0‿1⟩ }¨ moves
 heads ← +` exp
 tails ← (<0‿0) {
