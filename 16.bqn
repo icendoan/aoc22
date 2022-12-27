@@ -1,45 +1,40 @@
 ⟨Int, _split⟩ ← •Import "util.bqn"
-⟨Hashmap⟩ ← •Import "../bqn-libs/hashmap.bqn"
-Combinations ← ∾·(⍉∾˘¨⟜(∾˜`)˝˜≠↑(↓≍↕0)˙)⌾⌽↕⟜↕ # from bqncrate
 
-words ← ' '⊸= _split¨ •file.Lines "16.test"
+words ← ' '⊸= _split¨ •file.Lines "16.input"
 valves ← 1 ⊑¨ words
 flows ← (Int ⊢ /˜ ('0'+↕10) ∊˜ ⊢ )¨ 4 ⊑¨ words
 outputs ← 2 ↑¨¨ 9 ↓¨ words
 adj ← > valves ∊⚇2 outputs
 MMul ← 1 ⌊ ⊣ +˝∘× ⎉ 1‿∞ ⊢
-nzf ← / 0 < flows
+nzf ← / (0 < flows) ∨ valves ≡¨ <"AA"
 dist ← ⊑∘/⎉1 ⍉> (<(1¨⌾(0‿0⍉⊢) ≢⥊0˙) adj) ∾ MMul⍟(↕30)˜ 1¨⌾(0‿0 ⍉ ⊢) adj
+start ← / (<"AA") ⍷ nzf ⊏ valves
+graph ← (<nzf) ⊏˘ nzf ⊏ dist
+costs ← nzf ⊏ flows
+watermark ← ¯∞
+count ← 0
 
-cache ← Hashmap˜ ⟨⟩
-
-Step ← { # rem‿open‿pos ← 𝕩
- 0≥⊑𝕩 ? 0 ;
- cache.Has 𝕩 ? cache.Get 𝕩 ;
- open ← +´ flows × 1 ⊑ 𝕩
- trees ← Moves 𝕩
- wait ← open × (⊑𝕩) - ⊑¨ trees
- score ← ((⊑𝕩) × open) ⌈´ wait + 𝕊¨ trees
- 𝕩 cache.Set score
- score
+Walk ← { end Walk t‿open‿positions‿busy:
+ { end ≤ t    ? +´ (open ≠ ∞) / costs × 0 ⌈ end - open ;
+   ∞ > ⌈´open ? +´ costs × end - open ;
+   moves ← Travel ⟨t, open, positions, busy⟩
+   scores ← end Walk¨ moves
+   best ← ⌈´ scores
+   { watermark < best ? watermark ↩ best, •Show ⟨watermark, count⟩; count 1⊸+↩ }
+   best
+ }
 }
 
-Moves ← { 𝕊 rem‿open‿pos:
- good ← (pos ≠ ⊢)⊸/ nzf
- t ← good ⊏ pos ⊏ dist
- good ↩ (t≤rem) / good
- t ↩ (t≤rem) / t
- tunnels ← t { t𝕊p: ⟨rem - t, open, p ⟩}¨ good
- { pos ⊑ open ? tunnels ; tunnels ∾ <⟨ rem - 1, 1⌾(pos ⊑ ⊢) open, pos ⟩ } 
+Travel ← {𝕊 ⟨t, open, positions, busy⟩:
+ possible ← (open = ∞) / <˘⍉> (↕∘≠ ⋈ t + 1 + ⊢) (⊑positions) ⊏ graph
+ (<positions‿busy) { positions‿busy 𝕊 new‿delay:
+  p ← New ⌾ ⊑ positions
+  b ← delay ⌾ ⊑ busy
+  grade ← ⍋ b
+  ⟨⊑ grade ⊏ b, delay ⌾ (new ⊑ ⊢) open, grade ⊏ p, grade ⊏ b⟩
+ }¨ possible
 }
 
-Elephant ← { 𝕊𝕩:
- 0 ≥ ⊑𝕩 ? 0 ;
- cache.Has 𝕩 ? cache.Get 𝕩 ;
- open ← +´ flows × 1 ⊑ 𝕩
- ⟨t, open, positions⟩ ← 𝕩
- # todo
-}
-
-p1 ← Step ⟨30, 0¨ valves, ⊑/ (<"AA") ⍷ valves⟩
-#p2 ← Elephant ⟨30, 0¨ valves, 2 ⥊ ⊑/ (<"AA") ⍷ valves⟩
+#p1 ← 30 Walk ⟨0, 0⌾(start ⊑ ⊢) ∞¨nzf,   start,  ⋈0⟩
+#p2 ← 26 Walk ⟨0, 0⌾(start ⊑ ⊢) ∞¨nzf, 2⥊start, 0‿0⟩
+#p1‿p2
